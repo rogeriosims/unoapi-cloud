@@ -1,0 +1,256 @@
+openapi: 3.0.0
+info:
+  title: Unoapi Cloud API
+  description: API for sending and receiving WhatsApp messages via a cloud-based service.
+  version: "1.0.0"
+servers:
+  - url: https://api.example.com
+    description: Production server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+paths:
+  "/v1/{phone}/messages":
+    post:
+      summary: Enviar mensagem
+      description: Envia uma mensagem de texto para um número de telefone específico.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+          description: O número de telefone remetente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messaging_product:
+                  type: string
+                  example: whatsapp
+                to:
+                  type: string
+                  example: "5511999999999"
+                type:
+                  type: string
+                  example: text
+                text:
+                  type: object
+                  properties:
+                    body:
+                      type: string
+                      example: "Olá, mundo!"
+      responses:
+        "200":
+          description: Mensagem enviada com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messaging_product:
+                    type: string
+                    example: whatsapp
+                  contacts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        input:
+                          type: string
+                        wa_id:
+                          type: string
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+        "400":
+          description: Requisição inválida.
+  "/v1/{phone}/message_templates":
+    get:
+      summary: Listar templates de mensagem
+      description: Recupera a lista de templates de mensagem disponíveis.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+          description: O número de telefone remetente.
+      responses:
+        "200":
+          description: Uma lista de templates.
+        "400":
+          description: Requisição inválida.
+  "/sessions":
+    get:
+      summary: Listar todas as sessões
+      description: Recupera uma lista de todas as sessões ativas.
+      responses:
+        "200":
+          description: Uma lista de sessões.
+        "401":
+          description: Não autorizado.
+  "/sessions/{phone}":
+    get:
+      summary: Obter informações da sessão
+      description: Recupera informações sobre uma sessão específica.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+          description: O número de telefone da sessão.
+      responses:
+        "200":
+          description: Informações da sessão.
+        "404":
+          description: Sessão não encontrada.
+  "/{version}/{phone}/register":
+    post:
+      summary: Registrar número de telefone
+      description: Registra um novo número de telefone no serviço.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+            default: v1
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Registro bem-sucedido.
+        "400":
+          description: Requisição inválida.
+  "/{version}/{phone}/deregister":
+    post:
+      summary: Cancelar registro de número
+      description: Remove o registro de um número de telefone do serviço.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+            default: v1
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Registro cancelado com sucesso.
+        "400":
+          description: Requisição inválida.
+  "/{phone}/contacts":
+    post:
+      summary: Verificar contatos
+      description: Verifica se uma lista de contatos possui WhatsApp.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contacts:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Contacts checked successfully.
+        "400":
+          description: Bad request
+  /webhooks/whatsapp/{phone}:
+    post:
+      summary: Receber eventos do WhatsApp
+      description: Endpoint de webhook para receber eventos da plataforma do WhatsApp.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Evento recebido com sucesso.
+    get:
+      summary: Verificar webhook
+      description: Endpoint para o handshake de verificação do webhook.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook verificado.
+  /ping:
+    get:
+      summary: Ping
+      description: Verifica a disponibilidade da API.
+      responses:
+        "200":
+          description: API disponível.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /{phone}/request_code:
+    post:
+      summary: Solicitar código de pareamento
+      description: Solicita um código de pareamento para registrar um número na API Oficial.
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Código solicitado com sucesso.
+  /{version}/{phone}/marketing_messages:
+    post:
+      summary: Enviar mensagem de marketing
+      description: Envia uma mensagem de marketing.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Mensagem enviada.
