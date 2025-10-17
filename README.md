@@ -18,7 +18,9 @@ Para facilitar a navegação, a documentação foi dividida em vários arquivos:
 - **[🔌 Guia de Conexão com o WhatsApp](./CONEXAO_WHATSAPP.md)**: Explica como conectar seu número usando a API da Comunidade (QR Code) ou a API Oficial da Meta.
 - **[📖 Referência Completa de Endpoints](./ENDPOINTS.md)**: Detalhes técnicos de cada endpoint da API, com exemplos de requisição e resposta.
 - **[💡 Exemplos Práticos de Uso](./EXEMPLOS.md)**: Receitas de código para cenários comuns, como enviar mensagens de texto, imagens e usar botões.
-- **[📝 Análise de Lacunas](./ANALISE_LACUNAS.md)**: Relatório sobre os endpoints que foram implementados mas não documentados anteriormente.
+- **[⚙️ Guia de Configuração](./CONFIGURACAO.md)**: Uma referência detalhada para todas as variáveis de ambiente.
+- **[🏗️ Visão Geral da Arquitetura](./ARQUITETURA.md)**: Uma explicação sobre como os serviços da Unoapi Cloud funcionam juntos.
+- **[🤯 Guia de Troubleshooting](./TROUBLESHOOTING.md)**: Soluções para os problemas mais comuns.
 - **[📄 Especificação OpenAPI](./openapi.yaml)**: Arquivo `openapi.yaml` para integração com ferramentas de API como Postman e Swagger UI.
 
 ---
