@@ -164,3 +164,28 @@ Seu servidor local (ex: `http://localhost:4000/webhook`) precisa estar acessíve
 **c. Configure a URL no painel da Meta:**
 
 Com a URL pública em mãos (ex: `https://seusite.ngrok.io/webhook`), configure-a como o endpoint de webhook na sua conta do WhatsApp Business.
+
+---
+
+## 5. Integrações e Exemplos de Produção
+
+A pasta `examples/` no repositório contém configurações e scripts para cenários de implantação mais avançados e integrações com outras plataformas.
+
+### Visão Geral
+
+- **`docker-compose.yml` (em `examples/`)**: Este não é um arquivo de exemplo comum. É uma configuração de `docker-compose` pronta para produção, que orquestra a Unoapi Cloud junto com todos os seus serviços dependentes (Redis, RabbitMQ, Minio) e inclui ferramentas de gerenciamento como o `redis-commander`. Ele é projetado para ser implantado em um servidor com um domínio, usando um proxy reverso para gerenciar o tráfego e o SSL.
+
+- **`chatwoot/` e `chatwoot-uno/`**: Contêm configurações para integrar a Unoapi Cloud com o [Chatwoot](https://www.chatwoot.com/), uma plataforma de atendimento ao cliente de código aberto. Isso permite que os agentes de suporte respondam às mensagens do WhatsApp diretamente da interface do Chatwoot.
+
+- **`typebot/`**: Fornece um exemplo de integração com o [Typebot](https://typebot.io/), uma ferramenta para criar chatbots de conversação. Com esta integração, você pode criar fluxos de chatbot complexos no Typebot e conectá-los ao seu número do WhatsApp através da Unoapi Cloud.
+
+- **`unochat/`**: Demonstra a integração com o [UnoChat](https://unochat.io/), uma solução de caixa de entrada compartilhada.
+
+### Como Usar os Exemplos?
+
+Cada subdiretório de exemplo geralmente contém seus próprios arquivos de configuração e, às vezes, um `README` específico. Para usá-los:
+
+1.  **Leia a Documentação Específica**: Verifique se há um `README.md` dentro da pasta do exemplo (ex: `examples/chatwoot/README.md`).
+2.  **Entenda a Configuração**: Analise os arquivos `docker-compose.yml` ou scripts fornecidos para entender quais serviços eles iniciam e como eles se conectam.
+3.  **Configure as Variáveis de Ambiente**: A maioria desses exemplos dependerá de variáveis de ambiente específicas. Certifique-se de criar e preencher um arquivo `.env` conforme necessário.
+4.  **Execute o Compose**: Use `docker-compose up` para iniciar o ambiente de exemplo.

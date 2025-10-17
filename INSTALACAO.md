@@ -77,3 +77,62 @@ Este erro geralmente ocorre se as ferramentas de compilação (como `build-essen
 
 ### Conflitos de Dependência
 Se `npm install --legacy-peer-deps` não funcionar, você pode tentar `npm install --force`. No entanto, isso pode levar a comportamentos inesperados. A melhor abordagem é tentar entender o conflito de dependências e resolvê-lo, se possível.
+
+---
+
+## 🐳 Instalação com Docker
+
+Para uma instalação mais isolada e consistente, você pode usar o Docker. O projeto oferece duas configurações principais com `docker-compose`.
+
+### Opção 1: Ambiente de Desenvolvimento (Recomendado para Testes)
+
+Esta opção usa o `docker-compose.yml` na raiz do projeto. É ideal para desenvolvimento e testes locais, pois monta o código-fonte diretamente nos contêineres, permitindo o hot-reload.
+
+**Passo a Passo:**
+
+1.  **Pré-requisitos:**
+    - [Docker](https://www.docker.com/get-started)
+    - [Docker Compose](https://docs.docker.com/compose/install/)
+
+2.  **Configure o `.env`:**
+    - Certifique-se de ter criado e configurado seu arquivo `.env` a partir do `.env.example`, como explicado na instalação manual. As configurações de `REDIS_URL`, `AMQP_URL`, etc., serão usadas pelos contêineres.
+
+3.  **Inicie os Serviços:**
+    - No diretório raiz do projeto, execute:
+      ```bash
+      docker-compose up -d
+      ```
+    - Este comando irá construir as imagens (se necessário) e iniciar todos os serviços (`web`, `worker`, `redis`, `rabbitmq`, `minio`) em segundo plano (`-d`).
+
+4.  **Acompanhe os Logs:**
+    - Para ver os logs dos serviços e verificar se tudo iniciou corretamente:
+      ```bash
+      docker-compose logs -f
+      ```
+
+5.  **Parando o Ambiente:**
+    - Para parar todos os serviços:
+      ```bash
+      docker-compose down
+      ```
+
+### Opção 2: Ambiente de Produção/Demonstração
+
+Esta opção usa o `docker-compose.yml` localizado na pasta `examples/`. É uma configuração mais complexa e robusta, que utiliza uma imagem pré-construída e inclui serviços adicionais como `redis-commander` e um proxy reverso.
+
+**Passo a Passo:**
+
+1.  **Navegue até a Pasta de Exemplos:**
+    ```bash
+    cd examples/
+    ```
+
+2.  **Configure as Variáveis de Ambiente:**
+    - Este compose depende de um grande número de variáveis de ambiente. Você precisará criar um arquivo `.env` dentro da pasta `examples/` e preenchê-lo com as configurações necessárias, como `DOMAIN`, `REDIS_PASSWORD`, credenciais do Minio, etc. Consulte o arquivo `examples/docker-compose.yml` para ver todas as variáveis necessárias.
+
+3.  **Inicie os Serviços:**
+    ```bash
+    docker-compose -f examples/docker-compose.yml up -d
+    ```
+
+> **Atenção:** Esta configuração é avançada e requer um bom entendimento de Docker e redes. É projetada para ser implantada em um servidor com um nome de domínio configurado.
