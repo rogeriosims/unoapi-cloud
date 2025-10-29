@@ -185,3 +185,35 @@ Com os logs de depuração ativados, você pode acompanhar a jornada da mensagem
     *   **Log a Procurar:** Procure por `Publishing at exchange`. Este log é a confirmação final de que a mensagem foi formatada com sucesso e publicada na fila do RabbitMQ para ser entregue ao seu webhook.
 
 Se a mensagem aparecer no log do passo 1, mas não no passo 3, o problema provavelmente está em uma das etapas de processamento ou transformação dentro da Uno API. Analise os logs de erro entre esses dois pontos para identificar a causa raiz. Se a mensagem não aparecer nem no passo 1, o problema pode estar na conexão com o WhatsApp ou em uma configuração incorreta da sessão.
+
+## 7. Plano de Migração: de Baileys para Whatsmeow
+
+Migrar a biblioteca de conexão com o WhatsApp de Baileys (JavaScript) para Whatsmeow (Go) é uma mudança arquitetônica complexa, mas que pode trazer benefícios de performance e estabilidade.
+
+### Proposta de Arquitetura: Microserviço `whatsapp-connector`
+
+A abordagem recomendada é a criação de um novo microserviço em Go, que chamaremos de `whatsapp-connector`. Este serviço será o único componente do sistema a interagir diretamente com a biblioteca Whatsmeow.
+
+*   **Comunicação via RabbitMQ:**
+    *   O serviço `whatsapp-connector` (Go) se comunicará com a aplicação Uno API (Node.js) exclusivamente através do RabbitMQ.
+    *   **Recebimento:** Ao receber uma mensagem do WhatsApp, o `whatsapp-connector` a publicará em uma nova fila do RabbitMQ (ex: `unoapi.incoming.whatsmeow`).
+    *   **Envio:** O `whatsapp-connector` consumirá mensagens de uma fila dedicada a envios (ex: `unoapi.outgoing.whatsmeow`) e utilizará a Whatsmeow para enviá-las ao WhatsApp.
+
+### Pontos de Refatoração na Aplicação Node.js
+
+A aplicação principal em Node.js precisará das seguintes modificações:
+
+1.  **Remoção do Baileys:** A dependência do `baileys` e toda a camada de serviços que interage com ela (`client_baileys.ts`, `listener_baileys.ts`, `socket.ts`) serão removidas.
+2.  **Novos Consumidores e Produtores RabbitMQ:**
+    *   Um novo consumidor RabbitMQ será criado para processar as mensagens da fila `unoapi.incoming.whatsmeow`.
+    *   A lógica de envio de mensagens (`outgoing_amqp.ts`) será modificada para, em vez de chamar o `client.send`, publicar a mensagem na fila `unoapi.outgoing.whatsmeow`.
+3.  **Refatoração do `transformer.ts`:** A maior parte do trabalho estará em reescrever ou adaptar a lógica de transformação.
+    *   O novo serviço em Go será responsável por converter a mensagem do formato Whatsmeow para um formato JSON genérico antes de publicá-la no RabbitMQ.
+    *   A aplicação Node.js precisará adaptar a função `fromBaileysMessageContent` para que ela entenda este novo formato genérico.
+
+### Principais Desafios
+
+*   **Linguagem de Programação:** A migração exige conhecimento sólido em Go para desenvolver o novo microserviço.
+*   **Paridade de Funcionalidades:** É crucial garantir que o novo serviço com Whatsmeow tenha todas as funcionalidades que a integração com o Baileys atualmente oferece (envio de todos os tipos de mídia, gerenciamento de grupos, recibos de leitura, etc.).
+*   **Complexidade de Deploy:** A nova arquitetura adiciona mais um serviço para ser gerenciado, o que aumenta a complexidade do `docker-compose.yml` e do monitoramento.
+*   **Transformação de Dados:** A lógica de conversão de mensagens entre os formatos das bibliotecas e o formato interno da Uno API é complexa e precisará ser cuidadosamente reescrita.
