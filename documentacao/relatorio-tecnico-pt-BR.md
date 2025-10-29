@@ -134,3 +134,54 @@ O fluxo de mensagens no RabbitMQ é o seguinte:
 5.  **DLQ:** Se a mensagem continuar a falhar, ela é movida para a fila `unoapi.dead` para análise manual.
 
 Este mecanismo garante que nenhuma mensagem seja perdida e que o sistema seja resiliente a falhas temporárias no seu webhook.
+
+## 5. Stacks de Exemplo (Docker Compose)
+
+O diretório `examples/` contém várias configurações de `docker-compose.yml` para diferentes casos de uso.
+
+### Stack Padrão (Produção)
+
+*   **Arquivo:** `examples/docker-compose.yml`
+*   **Propósito:** Fornece uma configuração de produção robusta e pronta para uso, com serviços essenciais como Redis, RabbitMQ e Minio. Inclui limites de recursos para garantir a estabilidade.
+
+### Stack de Monitoramento
+
+*   **Arquivo:** `examples/monitoring/docker-compose.yml`
+*   **Propósito:** Configura um ambiente de monitoramento completo com Loki, Promtail, Grafana, Prometheus e cAdvisor. É ideal para coletar, visualizar e analisar logs e métricas de todos os seus contêineres Docker em tempo real.
+
+### Stack UnoChat (Uno API + Chatwoot)
+
+*   **Arquivo:** `examples/unochat/docker-compose.yml`
+*   **Propósito:** É a stack mais completa, oferecendo uma solução de atendimento ao cliente pronta para uso. Ela combina a Uno API Cloud com o Chatwoot, utilizando Traefik como reverse proxy para gerenciar o roteamento e os certificados SSL. Além do Chatwoot, a stack inclui todos os outros serviços necessários: Redis, PostgreSQL, RabbitMQ e Minio.
+
+## 6. Depuração Avançada: Rastreando Mensagens entre Baileys e Uno API
+
+Se você suspeita que as mensagens estão sendo perdidas entre a biblioteca Baileys (que se comunica com o WhatsApp) e o núcleo da Uno API, siga estes passos para rastrear o fluxo da mensagem.
+
+### Habilitando Logs de Depuração
+
+O primeiro passo é aumentar a verbosidade dos logs. Configure a seguinte variável de ambiente no seu `docker-compose.yml` ou arquivo `.env`:
+
+```
+LOG_LEVEL=debug
+```
+
+Isso fará com que a aplicação gere logs detalhados de cada etapa do processamento da mensagem.
+
+### O Fluxo da Mensagem: Pontos de Verificação
+
+Com os logs de depuração ativados, você pode acompanhar a jornada da mensagem através dos seguintes pontos de verificação:
+
+1.  **Recebimento da Mensagem (Baileys):**
+    *   **Arquivo:** `src/services/client_baileys.ts`
+    *   **Log a Procurar:** Procure por logs com o texto `messages.upsert`. A presença desse log indica que a mensagem foi recebida com sucesso do WhatsApp pela biblioteca Baileys.
+
+2.  **Processamento pelo Listener:**
+    *   **Arquivo:** `src/services/listener_baileys.ts`
+    *   **Log a Procurar:** Procure por `Listener receive message`. Este log confirma que a mensagem foi passada do Baileys para o listener da Uno API para ser processada e transformada no formato interno.
+
+3.  **Publicação na Fila (RabbitMQ):**
+    *   **Arquivo:** `src/services/outgoing_amqp.ts`
+    *   **Log a Procurar:** Procure por `Publishing at exchange`. Este log é a confirmação final de que a mensagem foi formatada com sucesso e publicada na fila do RabbitMQ para ser entregue ao seu webhook.
+
+Se a mensagem aparecer no log do passo 1, mas não no passo 3, o problema provavelmente está em uma das etapas de processamento ou transformação dentro da Uno API. Analise os logs de erro entre esses dois pontos para identificar a causa raiz. Se a mensagem não aparecer nem no passo 1, o problema pode estar na conexão com o WhatsApp ou em uma configuração incorreta da sessão.
